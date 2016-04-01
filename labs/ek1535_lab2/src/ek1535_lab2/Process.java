@@ -19,6 +19,7 @@ public class Process {
     int ioLeft;
     int cpuLeft;
     int id;
+    int inputTime;
 
     public Process() {
 
@@ -34,6 +35,7 @@ public class Process {
         this.waitTime = 0;
         this.startTime = 0;
         this.finishTime = 0;
+        this.inputTime = 0;
     }
 
     //clone process
@@ -48,6 +50,7 @@ public class Process {
         this.waitTime = 0;
         this.startTime = 0;
         this.finishTime = 0;
+        this.inputTime = 0;
     }
 
 

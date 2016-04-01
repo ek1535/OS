@@ -121,7 +121,6 @@ public class FirstComeFirstServed extends Scheduler {
                 //for (int i = blockedList.size()-1; i > -1; i-- ) {
                 for (int i = 0; i < blockedList.size(); i++) {
                     currentProcess = blockedList.get(i);
-                    System.out.println(currentProcess.toString());
                     currentProcess.ioTime++;
                     currentProcess.ioLeft--;
                     //check here?
@@ -205,8 +204,6 @@ public class FirstComeFirstServed extends Scheduler {
                 //System.out.printf("\ncurrent process:" + currentProcess.toString() + "\n");
             } /** doArriving **/
 
-
-
             /** doReady **/
             //add ready queues to the running queue(no priority, by order)
             //readyQ not empty = runnable, runningQ emepty = no runs
@@ -214,28 +211,35 @@ public class FirstComeFirstServed extends Scheduler {
             if (!readyQ.isEmpty() && runningQ.isEmpty()) {
                 //swich ready to running, only one runnable process at a time
 
-                System.out.println("readyQpeek" + readyQ.peek().toString());
+                //System.out.println("readyQpeek" + readyQ.peek().toString());
                 runningQ.add(readyQ.poll());
                 currentProcess = runningQ.peek();
                 currentProcess.state = "running";
 
-
-                //only choose the next cpu burst, dont actually decrement/run
-                //that happens next  cycle
+                /** Set CPU burst for next cycle **/
+                //only choose the cpu burst for next cycle, don't actually decrement/run
                 X = (int)randNumList.get(count); //chose rand int x = 1
-
                 count++;
                 System.out.printf("Find CPU burst when choosing ready process to run: %d\n", X);
-                //System.out.printf("X: " + X);
 
                 //check if cpu burst is less than total cpu
-                currentProcess.cpuLeft = randomOS(currentProcess.cpuBurst);
-
                 //randomOS chooses the cpu burst from random numbers
+                currentProcess.cpuLeft = randomOS(currentProcess.cpuBurst); //if greater than quantum?? (no preemption here)
+
+
                 if (currentProcess.cpuLeft >= (currentProcess.totalCPUTime - currentProcess.cpuTime)) { //currentProcess.cpuLeft <= randomOS(X)) {
                     //if cpu burst greater than remaining than set to total
                     currentProcess.cpuLeft = (currentProcess.totalCPUTime - currentProcess.cpuTime); //randomOS(X) is chosen cpu burst
-                }
+                    //count++;
+                    // if cpu burst greater than quantum //preemption should go to ready not blocked
+                } /*else if (randomOS(currentProcess.cpuBurst) > quantum) {
+                    currentProcess.cpuLeft = quantum;
+                    //needs to go to preemption(ready) instead of blocked
+                } else {
+                    currentProcess.cpuLeft = randomOS(currentProcess.cpuBurst);
+                    count++;
+                }*/
+                /** CPU Burst **/
             } /** doReady **/
 
             cycle++;
