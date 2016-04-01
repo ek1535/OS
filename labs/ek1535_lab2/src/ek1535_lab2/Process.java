@@ -20,10 +20,13 @@ public class Process {
     int cpuLeft;
     int id;
     int inputTime;
+    int T; //time in system
+    float penaltyRatio; //time in system divided by current runtime
 
     public Process() {
 
     }
+
     public Process(int id, int arrivalTime, int cpuBurst, int totalCPUTime, int ioBurst) {
         this.id = id;
         this.arrivalTime = arrivalTime;
@@ -36,6 +39,9 @@ public class Process {
         this.startTime = 0;
         this.finishTime = 0;
         this.inputTime = 0;
+        this.T = 0;
+        this.penaltyRatio = 0; // T/Math.max(1,cpuTime);
+
     }
 
     //clone process
@@ -51,6 +57,8 @@ public class Process {
         this.startTime = 0;
         this.finishTime = 0;
         this.inputTime = 0;
+        this.T = 0;
+        this.penaltyRatio = 0; // T/Math.max(1,cpuTime);
     }
 
 

@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Created by Aedo on 4/1/16.
  */
-public class LastComeFirstServed extends Scheduler {
+public class HighestPenaltyRatioNext extends Scheduler {
 
     private int X;
 
@@ -16,10 +16,10 @@ public class LastComeFirstServed extends Scheduler {
     private double cpuUtilization;
     private float throughput;
 
-    private int totalIOTime; //incremented every cycle when at least one process is blocked
-    private int totalRunTime; //incremented every cycle when at least process is running
+    private int totalIOTime;
+    private int totalRunTime;
 
-    public Queue<Process> lcfs(ArrayList<Process> processList, ArrayList randNumList, boolean verbose) {
+    public Queue<Process> hprn(ArrayList<Process> processList, ArrayList randNumList, boolean verbose) {
         int quantum = 1;
         int cycle = 0;
         int count = 0;
@@ -30,33 +30,41 @@ public class LastComeFirstServed extends Scheduler {
 
         Comparator<Process> arrivalComparator = new ArrivalTimeComparator();
         Comparator<Process> idComparator = new InputTimeComparator();
-        Comparator<Process> tieBreakComparator = new Comparator<Process>() {
-            @Override
-            public int compare(Process currentProcess, Process nextProcess) {
-                //return currentProcess.getArrivalTime() < nextProcess.getArrivalTime() ? -1:1;
-
-                if (currentProcess.inputTime > nextProcess.inputTime) {
-                    return 1;
-                } else if (currentProcess.inputTime < nextProcess.inputTime) {
-                    return -1;
-                } else {
-                    if (currentProcess.id < nextProcess.id) {
-                        return 1;
-                    } else if (currentProcess.id > nextProcess.id) {
-                        return -1;
-                    } else { //if arrival time is equal, choose priority by input time
-                        return 0;
-                    }//if arrival time is equal, choose priority by input time
-                }
-            }
-        };
+        Comparator<Process> tieBreakComparator = new tieBreakComparator();
 
         Queue<Process> runningQ = new LinkedList<>();
-        Stack<Process> readyStack = new Stack();
+        ArrayList<Process> readyList = new ArrayList<>();
         ArrayList<Process> blockedList = new ArrayList<>();
         PriorityQueue<Process> blockedQ = new PriorityQueue<>(tieBreakComparator);
         PriorityQueue<Process> terminatedQ = new PriorityQueue<>(idComparator);
         PriorityQueue<Process> arrivalQ = new PriorityQueue<>(processList.size(), arrivalComparator);
+
+        Comparator<Process> penaltyComparator = new Comparator<Process>() {
+            @Override
+            public int compare(Process currentProcess, Process nextProcess) {
+                //return currentProcess.getArrivalTime() < nextProcess.getArrivalTime() ? -1:1;
+
+                if (currentProcess.penaltyRatio > nextProcess.penaltyRatio) {
+                    return -1;
+                } else if (currentProcess.penaltyRatio < nextProcess.penaltyRatio) {
+                    return 1;
+                } else {
+                    if (currentProcess.inputTime < nextProcess.inputTime) {
+                        return -1;
+                    } else if (currentProcess.inputTime > nextProcess.inputTime) {
+                        return 1;
+                    } else {
+                        if (currentProcess.id < nextProcess.id) {
+                            return -1;
+                        } else if (currentProcess.id > nextProcess.id) {
+                            return 1;
+                        } else { //if arrival time is equal, choose priority by input time
+                            return 0;
+                        }//if arrival time is equal, choose priority by input time
+                    }
+                }
+            }
+        };
 
         //set input time to arrival time
         for (int i = 0; i < processList.size(); i++) {
@@ -64,7 +72,6 @@ public class LastComeFirstServed extends Scheduler {
             currentProcess.inputTime = currentProcess.arrivalTime;
             arrivalQ.add(currentProcess);
         }
-
 
         /** Print **/
         System.out.printf("The original input was: %2d ", processList.size());
@@ -88,7 +95,6 @@ public class LastComeFirstServed extends Scheduler {
 
         while (terminatedQ.size() < numProcesses) {
 
-
             /**if verbose**/
             if(verbose) {
                 System.out.printf("Before cycle\t %2d:", cycle);
@@ -106,11 +112,26 @@ public class LastComeFirstServed extends Scheduler {
             }
             /**if verbose**/
 
-            if (!readyStack.isEmpty()) {
-                for (Process p : readyStack) {
+            /** Update Penalty Ratio **/
+            if (!readyList.isEmpty()) {
+                for (Process p : readyList) {
                     p.waitTime++;
+                    p.T = cycle - p.arrivalTime;
+                    p.penaltyRatio = p.T/Math.max(1,p.cpuTime);
                 }
             }
+            if(!blockedList.isEmpty()) {
+                for (Process p :  blockedList) {
+                    p.T = cycle - p.arrivalTime;
+                    p.penaltyRatio = p.T/Math.max(1,p.cpuTime);
+                }
+            }
+            if(!runningQ.isEmpty()) {
+                for (Process p : runningQ) {
+                    p.T = cycle - p.arrivalTime;
+                    p.penaltyRatio = p.T/Math.max(1,p.cpuTime);
+                }
+            } /** Update Penalty Ratio **/
 
             /** doBlocked **/
             if (!blockedList.isEmpty()) {
@@ -131,9 +152,9 @@ public class LastComeFirstServed extends Scheduler {
                 }
                 while (!blockedQ.isEmpty()) {
                     currentProcess = blockedQ.remove();
-                    readyStack.add(currentProcess);
+                    readyList.add(currentProcess);
                     currentProcess.state = "ready";
-                    currentProcess.inputTime = cycle;
+                    //currentProcess.inputTime = cycle;
                 }
             } /** doBlocked **/
 
@@ -162,19 +183,19 @@ public class LastComeFirstServed extends Scheduler {
             /** doArriving **/
             while (!arrivalQ.isEmpty() && arrivalQ.peek().arrivalTime <= cycle) {
                 currentProcess = arrivalQ.remove();
-                readyStack.add(currentProcess);
+                readyList.add(currentProcess);
                 currentProcess.state = "ready";
             } /** doArriving **/
 
-
             /** doReady **/
-            if (!readyStack.isEmpty() && runningQ.isEmpty()) {
+            if (!readyList.isEmpty() && runningQ.isEmpty()) {
 
-                //process is gonna favor arrived time first
-                Collections.sort(readyStack, tieBreakComparator);
+                Collections.sort(readyList, penaltyComparator);
 
-                runningQ.add(readyStack.pop());
+                //run process w/ highest r value
+                runningQ.add(readyList.remove(0));
                 currentProcess = runningQ.peek();
+                //System.out.printf("\nr = %f\n", currentProcess.penaltyRatio);
                 currentProcess.state = "running";
 
                 X = (int) randNumList.get(count); //chose rand int x = 1
@@ -189,8 +210,7 @@ public class LastComeFirstServed extends Scheduler {
             } /** doReady **/
             cycle++;
         }
-
-        System.out.println("\t\t\t\t\tLast Come First Served");
+        System.out.println("\t\t\t\t\tHighest Penalty Ratio Next");
         finishTime = cycle - 1;
 
         avgTurnaroundTime = this.avgTurnaroundTime(terminatedQ);
@@ -205,45 +225,47 @@ public class LastComeFirstServed extends Scheduler {
         this.printSummary();
         return terminatedQ;
     }
+
     public int randomOS(int U) {
-        return 1 + (X%U);
+        return 1 + (X % U);
     }
 
     public float avgTurnaroundTime(Queue<Process> terminatedQ) {
         float totalTurnaroundTime = 0;
 
-        for(Process p : terminatedQ) {
+        for (Process p : terminatedQ) {
             totalTurnaroundTime += p.getTurnaroundTime();
         }
-        return (totalTurnaroundTime/terminatedQ.size());
+        return (totalTurnaroundTime / terminatedQ.size());
     }
 
     public float avgWaitTime(Queue<Process> terminatedQ) {
         float totalWaitTime = 0;
-        for(Process p : terminatedQ) {
+        for (Process p : terminatedQ) {
             totalWaitTime += p.waitTime;
         }
-        return (totalWaitTime/terminatedQ.size());
+        return (totalWaitTime / terminatedQ.size());
     }
 
     public double cpuUtil(Queue<Process> terminatedQ, int runTime) {
-        float p = (float)runTime/(float)this.finishTime;
-        return(p);
+        float p = (float) runTime / (float) this.finishTime;
+        return (p);
     }
 
     public float ioUtil() {
-        return ((float)this.totalIOTime/(float)this.finishTime);
+        return ((float) this.totalIOTime / (float) this.finishTime);
     }
 
     public float avgIOTime(Queue<Process> terminatedQ) {
         float totalIOTime = 0;
-        for(Process p : terminatedQ) {
+        for (Process p : terminatedQ) {
             totalIOTime += p.ioTime;
         }
-        return (totalIOTime/terminatedQ.size());
+        return (totalIOTime / terminatedQ.size());
     }
+
     public float throughput(Queue<Process> terminatedQ) {
-        float x = (float)terminatedQ.size()/(float)finishTime;
+        float x = (float) terminatedQ.size() / (float) finishTime;
         return x * 100;
     }
 
@@ -258,3 +280,8 @@ public class LastComeFirstServed extends Scheduler {
         System.out.println();
     }
 }
+
+
+
+
+

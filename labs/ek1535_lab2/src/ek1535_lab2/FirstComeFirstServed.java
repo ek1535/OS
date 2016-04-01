@@ -26,7 +26,7 @@ public class FirstComeFirstServed extends Scheduler {
 
 
     //returns list of the finished processes
-    public Queue<Process> fcfs(ArrayList<Process> processList, ArrayList randNumList) {
+    public Queue<Process> fcfs(ArrayList<Process> processList, ArrayList randNumList, boolean verbose) {
         int quantum = 1; //how much the cycle is incremented by
         int cycle = 0;
         int count = 0; //keeps track of random number list
@@ -85,17 +85,20 @@ public class FirstComeFirstServed extends Scheduler {
         while (terminatedQ.size() < numProcesses) { //running forever
 
             /**if verbose**/
-            System.out.printf("Before cycle\t %2d:", cycle);
-            for (Process s : processList) {
-                if (s.state == "unstarted" || s.state == "terminated" || s.state == "ready") {
-                    System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, 0);
-                } else if (s.state == "running") {
-                    System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.cpuLeft);
-                } else if (s.state == "blocked") {
-                    System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.ioLeft);
+            if(verbose) {
+                System.out.printf("Before cycle\t %2d:", cycle);
+                for (Process s : processList) {
+                    if (s.state == "unstarted" || s.state == "terminated" || s.state == "ready") {
+                        System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, 0);
+                    } else if (s.state == "running") {
+                        //For RR: quantum instead of s.cpuLeft
+                        System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.cpuLeft);
+                    } else if (s.state == "blocked") {
+                        System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.ioLeft);
+                    }
                 }
+                System.out.println();
             }
-            System.out.println();
             /**if verbose**/
 
 
@@ -184,7 +187,7 @@ public class FirstComeFirstServed extends Scheduler {
 
                     X = (int) randNumList.get(count);
                     count++;
-                    System.out.printf("Find I/O burst when blocking process: %d\n", X);
+                    //System.out.printf("Find I/O burst when blocking process: %d\n", X);
                     currentProcess.ioLeft = randomOS(currentProcess.ioBurst);
                 } //else still running/continue to next cycle
             } /** doRunning **/
@@ -220,7 +223,7 @@ public class FirstComeFirstServed extends Scheduler {
                 //only choose the cpu burst for next cycle, don't actually decrement/run
                 X = (int)randNumList.get(count); //chose rand int x = 1
                 count++;
-                System.out.printf("Find CPU burst when choosing ready process to run: %d\n", X);
+                //System.out.printf("Find CPU burst when choosing ready process to run: %d\n", X);
 
                 //check if cpu burst is less than total cpu
                 //randomOS chooses the cpu burst from random numbers
@@ -245,7 +248,7 @@ public class FirstComeFirstServed extends Scheduler {
             cycle++;
         }
 
-        System.out.println("First Come First Served");
+        System.out.println("\t\t\t\t\tFirst Come First Served");
         finishTime = cycle - 1;
 
         avgTurnaroundTime = avgTurnaroundTime(terminatedQ);

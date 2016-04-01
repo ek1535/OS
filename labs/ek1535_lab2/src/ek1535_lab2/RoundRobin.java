@@ -20,10 +20,11 @@ public class RoundRobin extends Scheduler {
     private int totalIOTime; //incremented every cycle when at least one process is blocked
     private int totalRunTime; //incremented every cycle when at least process is running
 
-    public Queue<Process> rr(ArrayList<Process> processList, ArrayList randNumList) {
+    public Queue<Process> rr(ArrayList<Process> processList, ArrayList randNumList, boolean verbose) {
         int quantum = 2;
         int cycle = 0;
         int count = 0;
+        boolean verboseFlag = verbose;
         totalRunTime = 0;
         totalIOTime = 0;
         Process currentProcess;
@@ -77,18 +78,20 @@ public class RoundRobin extends Scheduler {
             //quantum = 2;
 
             /**if verbose**/
-            System.out.printf("Before cycle\t %2d:", cycle);
-            for (Process s : processList) {
-                if (s.state == "unstarted" || s.state == "terminated" || s.state == "ready") {
-                    System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, 0);
-                } else if (s.state == "running") {
-                    //For RR: quantum instead of s.cpuLeft
-                    System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.cpuLeft);
-                } else if (s.state == "blocked") {
-                    System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.ioLeft);
+            if(verboseFlag) {
+                System.out.printf("Before cycle\t %2d:", cycle);
+                for (Process s : processList) {
+                    if (s.state == "unstarted" || s.state == "terminated" || s.state == "ready") {
+                        System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, 0);
+                    } else if (s.state == "running") {
+                        //For RR: quantum instead of s.cpuLeft
+                        System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.cpuLeft);
+                    } else if (s.state == "blocked") {
+                        System.out.printf("\t\t\tProcess %s: %10s %2d", s.id, s.state, s.ioLeft);
+                    }
                 }
+                System.out.println();
             }
-            System.out.println();
             /**if verbose**/
 
             if (!readyList.isEmpty())
@@ -155,7 +158,7 @@ public class RoundRobin extends Scheduler {
                     currentProcess.state = "blocked";
                     X = (int) randNumList.get(count);
                     count++;
-                    System.out.printf("Find I/O burst when blocking process: %d\n", X);
+                    //System.out.printf("Find I/O burst when blocking process: %d\n", X);
                     currentProcess.ioLeft = randomOS(currentProcess.ioBurst);
                     quantum = 2; //reset quantum when process cpu burst done
                 }
@@ -229,7 +232,7 @@ public class RoundRobin extends Scheduler {
                 {
                     X = (int) randNumList.get(count);
                     count++;
-                    System.out.printf("Find CPU burst when choosing ready process to run: %d\n", X);
+                    //System.out.printf("Find CPU burst when choosing ready process to run: %d\n", X);
                     currentProcess.cpuLeft = randomOS(currentProcess.cpuBurst);
 
                     //if cpu burst greater than remaining than set to total
@@ -254,7 +257,7 @@ public class RoundRobin extends Scheduler {
             cycle++;
         }
 
-        System.out.println("Round Robin");
+        System.out.println("\t\t\t\t\tRound Robin");
         finishTime = cycle - 1;
         avgTurnaroundTime = avgTurnaroundTime(terminatedQ);
         avgWaitTime = avgWaitTime(terminatedQ);

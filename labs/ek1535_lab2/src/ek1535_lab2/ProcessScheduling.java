@@ -18,6 +18,7 @@ public class ProcessScheduling {
     private HashMap<Integer, Process> processHashMap;
     private ArrayList<Process> processList;
     public static ArrayList<Integer> randNumList;
+    private static boolean verbose;
 
     public static void main(String[] args) {
         //Store random numbers in array
@@ -44,6 +45,7 @@ public class ProcessScheduling {
                 System.exit(1);
             }
             processList = readFile(file);
+            verbose = true;
         } else {
             File file = new File(args[0]);
             if (!file.canRead()) {
@@ -52,21 +54,28 @@ public class ProcessScheduling {
                 System.exit(1);
             }
             processList =  readFile(file);
+            verbose = false;
         }
         //printHashMap(processHashMap);
 
         ArrayList<Process> fcfsList = cloneList(processList);
         ArrayList<Process> rrList = cloneList(processList);
+        ArrayList<Process> lcfsList = cloneList(processList);
+        ArrayList<Process> hprnList = cloneList(processList);
 
-        //printArray(processList);
         //first come first served returns new queue after scheduling
         FirstComeFirstServed fcfs = new FirstComeFirstServed();
-        Queue<Process> doneFCFS = fcfs.fcfs(fcfsList, randNumList);
+        Queue<Process> doneFCFS = fcfs.fcfs(fcfsList, randNumList, verbose);
 
-        //printArray(processList);
 
         RoundRobin rr = new RoundRobin();
-        Queue<Process> doneRR = rr.rr(rrList, randNumList);
+        Queue<Process> doneRR = rr.rr(rrList, randNumList, verbose);
+
+        LastComeFirstServed lcfs = new LastComeFirstServed();
+        lcfs.lcfs(lcfsList, randNumList, verbose);
+
+        HighestPenaltyRatioNext hprn = new HighestPenaltyRatioNext();
+        hprn.hprn(hprnList, randNumList, verbose);
 
 
 

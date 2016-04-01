@@ -14,6 +14,7 @@ public abstract class Scheduler {
     private float ioUtilization;
     private double cpuUtilization;
     private float throughput;
+    private int totalIOTime;
 
     public int randomOS(int U) {
         return 1 + (X%U);
@@ -42,29 +43,14 @@ public abstract class Scheduler {
     //given x cycles, how many cycles is running
     // (finish - io - wait) / finish
     public double cpuUtil(Queue<Process> terminatedQ, int runTime) {
-        //float p = ioUtil(terminatedQ);
-        float avgWaitTime = avgWaitTime(terminatedQ);
-        float avgIOTime = avgIOTime(terminatedQ);
-        float avgTurnaroundTime = avgTurnaroundTime(terminatedQ);
-        int numProcesses = terminatedQ.size();
-        //float avgNotRunningTime = avg
-        //float p = (avgWaitTime + avgIOTime)/avgTurnaroundTime;
-        //return (1 - (Math.pow(p, numProcesses)));
         float p = (float)runTime/(float)this.finishTime;
-
-        //System.out.printf("\n\n\n\n\nrunTime: %d\n finishTime: %d, p:%f", runTime, finishTime, p);
-
         return(p);
     }
 
     //percentage of time job is blocked
     //total io time / finish time
-    public float ioUtil(Queue<Process> terminatedQ) {
-        float totalIOTime = 0;
-        for (Process p : terminatedQ) {
-            totalIOTime += p.ioTime;
-        }
-        return (totalIOTime/finishTime);
+    public float ioUtil() {
+        return ((float)this.totalIOTime/(float)this.finishTime);
     }
 
     public float avgIOTime(Queue<Process> terminatedQ) {
@@ -78,8 +64,6 @@ public abstract class Scheduler {
     //number of jobs completed every 100 cycles
     public float throughput(Queue<Process> terminatedQ) {
         float x = (float)terminatedQ.size()/(float)finishTime;
-        //float x = (avgTurnaroundTime + avgWaitTime)/terminatedQ.size();
-
         return x * 100;
     }
 

@@ -25,8 +25,6 @@ public class tieBreakComparator implements Comparator<Process> {
             } else { //if arrival time is equal, choose priority by input time
                 return 0;
             }//if arrival time is equal, choose priority by input time
-
         }
-
     }
 }
