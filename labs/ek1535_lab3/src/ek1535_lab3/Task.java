@@ -15,14 +15,16 @@ public class Task {
     int delayStart;
     int current; //counter for activity
     int next; //counter for next activity
-    int requestType; //request resource type for task (can only have one)
-    int requestUnit;
+    int requestType; //request resource type for task (can only have one) at cycle
+    int requestUnit; //request resource unit for task at cycle
+    //int initialClaim; //initial claim for task
+    HashMap<Integer, Integer> initialClaim;
 
     //Resource resourceRequest; //resource type and unit requested by task
     ArrayList<Activity> activityList; //arrayList of activities for each task
     //ArrayList<Resource> resourceHeld; //arrayList of resources held
-    HashMap<Integer, Integer> rHeld; //hashmap of resources held
-    HashMap<Integer, Integer> rRequest; //hashmap of resources requested
+    HashMap<Integer, Integer> rHeld; //hashmap of all resources held
+    HashMap<Integer, Integer> rRequest; //hashmap of all resources requested at cycle
 
 
     int takenTime; //time taken to complete task
@@ -38,11 +40,14 @@ public class Task {
         this.activityList = new ArrayList<>();
         this.rHeld = new HashMap<>();
         this.rRequest = new HashMap<>();
+        this.initialClaim = new HashMap<>();
         this.current = 0;
         this.next = 1;
         this.state = "";
         this.requestType = 1;
         this.requestUnit = 0;
+        //this.initialClaim = activityList.get(0).initialClaim; //initialize initialClaim for task
+
     }
     public Task(int id, ArrayList<Activity> activityList) {
         this.id = id;
@@ -52,9 +57,13 @@ public class Task {
         this.activityList = activityList;
         this.rHeld = new HashMap<>();
         this.rRequest = new HashMap<>();
+        this.initialClaim = new HashMap<>();
         this.current = 0;
         this.next = 1;
         this.state = "";
+        this.requestType = 1;
+        this.requestUnit = 0;
+        //this.initialClaim = activityList.get(0).initialClaim; //initialize initialClaim for task
     }
 
     public Task(Task t) {
@@ -65,9 +74,15 @@ public class Task {
         this.activityList = new ArrayList<>(); //copy
         this.rHeld = new HashMap<>();
         this.rRequest = new HashMap<>();
+        this.initialClaim = new HashMap<>();
         this.current = 0;
         this.next = 1;
         this.state = "";
+        this.requestType = 1;
+        this.requestUnit = 0;
+        this.requestType = 1;
+        this.requestUnit = 0;
+        //this.initialClaim = activityList.get(0).initialClaim; //initialize initialClaim for task
     }
 
     public void addActivity(Activity a) {

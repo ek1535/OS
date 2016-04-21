@@ -1,5 +1,6 @@
 package ek1535_lab3;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -22,6 +23,8 @@ public class OptimisticResourceManager {
     ArrayList<Task> deadList = new ArrayList<>();
     Task currentT;
     Activity currentA;
+    int cycle;
+    int nextCycle;
 
     public void fifo2(HashMap<Integer, Integer> rMap) {
         System.out.printf("\nINSIDE\n");
@@ -29,9 +32,9 @@ public class OptimisticResourceManager {
         printAvResources(rMap,0);
     }
 
-    public void fifo(ArrayList<Task> taskList, int tasks, LinkedHashMap<Integer, Integer> rMap) {
-        int cycle = 0;
-        int nextCycle = 1;
+    public ArrayList<Task> fifo(ArrayList<Task> taskList, int tasks, LinkedHashMap<Integer, Integer> rMap) {
+        cycle = 0;
+        nextCycle = 1;
         int delay; //delay of current process
         int avType;
         int avUnit;
@@ -42,7 +45,7 @@ public class OptimisticResourceManager {
         int heldType; //resource type held by current task;
         int heldUnit; //resource unit held by current task
         boolean release = false; //checks it hashmap is not null for iteration
-        Map<Integer, Integer> releasedMap = new LinkedHashMap<>(); //Map stores released resources
+        Map<Integer, Integer> releasedMap = new LinkedHashMap<>(); //Map stores all the released resources
         //Initialize releasedMap
         for(Map.Entry<Integer, Integer> entry : rMap.entrySet()) {
             releasedMap.put(entry.getKey(),0);
@@ -337,8 +340,8 @@ public class OptimisticResourceManager {
             System.out.println();
         } /** while not all processes are finished **/
         Collections.sort(finishedList, new taskComparator());
-
-        printStats(finishedList);
+        return finishedList;
+        //printStats(finishedList);
         }
 
 

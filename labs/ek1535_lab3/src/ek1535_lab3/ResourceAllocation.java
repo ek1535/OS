@@ -1,6 +1,7 @@
 package ek1535_lab3;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -25,7 +26,7 @@ public class ResourceAllocation {
     static ArrayList<Task> taskList = new ArrayList<>();
     // list of activity(object) ordered by input(All activities)
         //put into each Task object in TaskList
-    static ArrayList<Activity> activityList;
+    static ArrayList<Activity> activityList = new ArrayList<>();
 
     static ArrayList<Activity> fifoAList; //activityList deep cloned for fifo algorithm
     static ArrayList<Activity> bankerAList; //activityList deep cloned for banker algorithm
@@ -54,19 +55,9 @@ public class ResourceAllocation {
                 System.exit(1);
             }
             //activityList now contains all activities object in order
-            activityList = readFile(file);
+            /*activityList = */readFile(file);
         }
 
-        /** Initialize rMap w/ resources **/
-        for(int i = 1; i < resourceTypes+1; i++) {
-            rMap.put(i, resourceUnits);
-        }
-
-
-        /** Initialize taskList w/ # of tasks **/
-        for (int i = 1; i < tasks+1; i++) {
-            taskList.add(new Task(i));
-        }
 
         /** Sort activity list by task number w/ idComparator **/
         Comparator<Activity> idComparator = new idComparator();
@@ -79,6 +70,7 @@ public class ResourceAllocation {
                 currentActivity = activityList.get(j);
                 if (currentActivity.taskNumber == currentTask.id) {
                     currentTask.addActivity(currentActivity);
+                    //if(currentActivity.initialClaim )
                 }
             }
         }
@@ -120,7 +112,12 @@ public class ResourceAllocation {
         }
         /** Cloning done **/
         OptimisticResourceManager orm = new OptimisticResourceManager();
-        orm.fifo(fifoTaskList, tasks,rMap);
+        ArrayList<Task> fifoDone = orm.fifo(fifoTaskList, tasks,rMap);
+
+        Banker banker = new Banker();
+        ArrayList<Task> bankerDone = banker.banker(bankerTaskList, tasks, rMap);
+        orm.printStats(fifoDone);
+        banker.printStats(bankerDone);
 
     }
     /** Main DONE**/
@@ -184,17 +181,38 @@ public class ResourceAllocation {
         }
     }
 
-    public static ArrayList<Activity> readFile(File file) {
-        ArrayList<Activity> activityList = new ArrayList();
+    public static void readFile(File file) {
+        //ArrayList<Activity> activityList = new ArrayList();
         try {
             Scanner input = new Scanner(file);
             //store # of task, resourceTypes, resourceUnits
             String firstLine = input.nextLine();
             String tokens[] = firstLine.split(" ");
+
             tasks = Integer.parseInt(tokens[0]);
+
+            /** Initialize taskList w/ # of tasks **/
+            for (int i = 1; i < tasks+1; i++) {
+                taskList.add(new Task(i));
+            }
+
             resourceTypes = Integer.parseInt(tokens[1]);
+
+            /** Initialize rMap w/ resources **/
+            if (resourceTypes > 1) { // multiple resource types
+                for (int i = 2; i < tokens.length; i++) {
+                    // resource units for current type
+                    resourceUnits = Integer.parseInt(tokens[i]);
+                    rMap.put(i-1, resourceUnits);
+                }
+            } else { // only 1 resource type
+                resourceUnits = Integer.parseInt(tokens[2]);
+                rMap.put(1, resourceUnits);
+            }
+
             resourceUnits = Integer.parseInt(tokens[2]);
 
+            /** Initialize activityList **/
             while (input.hasNext()) {
                 String activity = input.next();
                 int taskNumber = input.nextInt();
@@ -210,7 +228,7 @@ public class ResourceAllocation {
             System.out.printf("Absolute path: %s\n", file.getAbsolutePath());
             System.exit(1);
         }
-        return activityList;
+        //return activityList;
     }
 
     public static ArrayList readFile2(File file) {

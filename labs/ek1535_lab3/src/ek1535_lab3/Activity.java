@@ -1,5 +1,7 @@
 package ek1535_lab3;
 
+import java.util.HashMap;
+
 /**
  * Created by Aedo on 4/6/16.
  */
@@ -9,7 +11,9 @@ public class Activity {
     int delay; //# of cycles btw completion of previous activity and start of current activity
     int resourceType;
     int initialClaim; //maximum number of units of each resource the process can "possibly" need
+    //HashMap<Integer, Integer> initialClaim;
     int unitRequested;
+    int delayStart;
 
     public Activity(){}
 
@@ -18,9 +22,12 @@ public class Activity {
         this.taskNumber = taskNumber;
         this.delay = delay;
         this.resourceType = resourceType;
+        //this.initialClaim = new HashMap<>();
+        this.delayStart = 0;
 
         if (this.name.equals("initiate")) {
-            this.initialClaim = unitRequested;
+            //this.initialClaim = unitRequested;
+            this.initialClaim = unitRequested; //put(resourceType, unitRequested);
         } else if (this.name.equals("request") || this.name.equals("release")) {
             this.unitRequested = unitRequested;
         }
@@ -38,9 +45,12 @@ public class Activity {
         this.taskNumber = a.taskNumber;
         this.delay = a.delay;
         this.resourceType = a.resourceType;
+        this.delayStart = 0;
+        //this.initialClaim = new HashMap<>();
 
         if (this.name.equals("initiate")) {
-            this.initialClaim = a.unitRequested;
+            //this.initialClaim = a.unitRequested;
+            this.initialClaim = a.initialClaim; //put(a.resourceType, a.unitRequested);
         } else if (this.name.equals("request") || this.name.equals("release")) {
             this.unitRequested = a.unitRequested;
         }
